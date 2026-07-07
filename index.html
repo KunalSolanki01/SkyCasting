@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkyCasting</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="Weather_2026_dark.webp">
+</head>
+<body>
+
+  <canvas id="ambientCanvas"></canvas>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="logo">
+      <span class="logo-glyph"><img src="Weather_2026_dark.webp" alt="" height="40px"></span>
+      <span class="logo-text">SkyCasting</span>
+    </div>
+    <div class="search">
+      <input type="text" id="cityInput" placeholder="Search city…" autocomplete="on" style="height: 25px;"/>
+      <button id="searchBtn" aria-label="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </button>
+    </div>
+    <div class="nav-right">
+      <span class="mono" id="currentTime">--:--:--</span>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+          <span class="toggle-icon sun"><img src="https://img.icons8.com/?size=15&id=83221&format=png&color=FCC419" alt=""></span>
+          <span class="toggle-icon moon"><img src="https://img.icons8.com/?size=15&id=azgVLsnKI3oI&format=png&color=000000" alt=""></span>
+        </span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Bento Grid -->
+  <main class="bento">
+
+    <!-- HERO -->
+    <div class="glass-card card-hero">
+      <div class="hero-top">
+        <div>
+          <p class="hero-label mono">ATMOSPHERIC STATE</p>
+          <h1 class="city-name" id="cityName">—</h1>
+          <p class="coordinates mono" id="coordinates">—</p>
+        </div>
+        <div class="hero-local-time">
+          <span class="hero-time-val mono" id="heroLocalTime">--:--</span>
+          <span class="hero-time-label mono">LOCAL TIME</span>
+        </div>
+      </div>
+
+      <div class="hero-mid">
+        <div class="temp-display">
+          <span class="temp-value" id="temperature">—</span>
+          <span class="temp-unit">°C</span>
+        </div>
+        <div id="heroMap"></div>
+      </div>
+
+      <p class="condition-text" id="conditionText">—</p>
+
+      <div class="hero-strip">
+        <div class="hero-strip-item">
+          <span class="strip-label mono">HIGH</span>
+          <span class="strip-value gold" id="heroHigh">—</span>
+        </div>
+        <div class="hero-strip-divider"></div>
+        <div class="hero-strip-item">
+          <span class="strip-label mono">LOW</span>
+          <span class="strip-value" id="heroLow">—</span>
+        </div>
+        <div class="hero-strip-divider"></div>
+        <div class="hero-strip-item">
+          <span class="strip-label mono">HUMIDITY</span>
+          <span class="strip-value" id="heroHumidity">—</span>
+        </div>
+        <div class="hero-strip-divider"></div>
+        <div class="hero-strip-item">
+          <span class="strip-label mono">WIND</span>
+          <span class="strip-value" id="heroWind">—</span>
+        </div>
+      </div>
+
+      <div class="badges" id="badgesContainer"></div>
+    </div>
+
+    <!-- SOLAR / LUNAR TRANSIT -->
+    <div class="glass-card card-arc">
+      <p class="card-label mono" id="transitLabel">SOLAR TRANSIT</p>
+      <div class="celestial-arc">
+        <svg viewBox="0 0 300 200" class="arc-svg">
+          <defs>
+            <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   style="stop-color:#1a1a2e;stop-opacity:1"/>
+              <stop offset="50%"  style="stop-color:#D4AF37;stop-opacity:0.35"/>
+              <stop offset="100%" style="stop-color:#1a1a2e;stop-opacity:1"/>
+            </linearGradient>
+            <linearGradient id="nightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   style="stop-color:#1a1a2e;stop-opacity:1"/>
+              <stop offset="50%"  style="stop-color:#8899cc;stop-opacity:0.35"/>
+              <stop offset="100%" style="stop-color:#1a1a2e;stop-opacity:1"/>
+            </linearGradient>
+          </defs>
+          <line x1="20" y1="140" x2="280" y2="140" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+          <path d="M 20 140 Q 150 10 280 140"  stroke="url(#arcGrad)"   stroke-width="1" fill="none" stroke-dasharray="4 4"/>
+          <path d="M 280 140 Q 150 195 20 140" stroke="url(#nightGrad)" stroke-width="1" fill="none" stroke-dasharray="3 5"/>
+          <circle id="celestialBody" cx="150" cy="75" r="10" fill="#D4AF37" opacity="0.95"/>
+          <circle id="moonMask" cx="155" cy="71" r="9.5" fill="var(--moon-mask)" opacity="1" style="pointer-events:none"/>
+          <text x="20"  y="158" class="arc-label" id="sunriseLabel">Sunrise —</text>
+          <text x="210" y="158" class="arc-label" id="sunsetLabel">Sunset —</text>
+        </svg>
+      </div>
+      <div class="arc-stats">
+        <div class="stat-item">
+          <span class="stat-label mono">FEELS LIKE</span>
+          <span class="stat-value" id="feelsLike">—</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label mono">VISIBILITY</span>
+          <span class="stat-value" id="visibility">—</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label mono">PRESSURE</span>
+          <span class="stat-value mono" id="pressure">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WIND -->
+    <div class="glass-card card-wind">
+      <div class="card-header">
+        <span class="card-glyph">+</span>
+        <span class="card-title mono">WIND</span>
+      </div>
+      <div class="wind-compass">
+        <div class="compass-ring">
+          <span class="compass-n">N</span>
+          <span class="compass-e">E</span>
+          <span class="compass-s">S</span>
+          <span class="compass-w">W</span>
+          <div class="compass-needle" id="compassNeedle"></div>
+        </div>
+      </div>
+      <div class="card-value" id="windSpeed">—</div>
+      <div class="card-sub mono" id="windDir">—</div>
+    </div>
+
+    <!-- HUMIDITY -->
+    <div class="glass-card card-humidity">
+      <div class="card-header">
+        <span class="card-glyph">o</span>
+        <span class="card-title mono">HUMIDITY</span>
+      </div>
+      <div class="arc-meter">
+        <svg viewBox="0 0 120 70">
+          <path d="M 10 65 A 50 50 0 0 1 110 65" stroke="var(--track)" stroke-width="8" fill="none" stroke-linecap="round"/>
+          <path id="humidityArc" d="M 10 65 A 50 50 0 0 1 110 65" stroke="#6ba3be" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="78"/>
+        </svg>
+        <span class="arc-value" id="humidityValue">—</span>
+      </div>
+      <div class="card-sub mono">Mist Threshold: 85%</div>
+    </div>
+
+    <!-- UV INDEX -->
+    <div class="glass-card card-uv">
+      <div class="card-header">
+        <span class="card-glyph">*</span>
+        <span class="card-title mono">UV INDEX</span>
+      </div>
+      <div class="uv-scale">
+        <div class="uv-bar">
+          <div class="uv-fill" id="uvFill"></div>
+          <div class="uv-marker" id="uvMarker"></div>
+        </div>
+        <div class="uv-labels mono">
+          <span>Low</span><span>Mod</span><span>High</span><span>V.Hi</span><span>Ext</span>
+        </div>
+      </div>
+      <div class="card-value gold" id="uvValue">—</div>
+      <div class="card-sub mono" id="uvLabel">—</div>
+    </div>
+
+    <!-- PRECIPITATION -->
+    <div class="glass-card card-precip">
+      <div class="card-header">
+        <span class="card-glyph">|</span>
+        <span class="card-title mono">PRECIPITATION</span>
+      </div>
+      <div class="precip-bars" id="precipBars"></div>
+      <div class="card-value" id="precipValue">—</div>
+      <div class="card-sub mono">3h accumulation</div>
+    </div>
+
+    <!-- FORECAST -->
+    <div class="glass-card card-forecast">
+      <p class="card-label mono">FIVE-ELEMENT FORECAST MATRIX</p>
+      <div class="forecast-grid" id="forecastGrid"></div>
+    </div>
+
+    <!-- EXTRA READINGS -->
+    <div class="glass-card card-extra">
+      <p class="card-label mono">ATMOSPHERIC READINGS</p>
+      <div class="extra-grid">
+        <div class="extra-item">
+          <span class="stat-label mono">CLOUDINESS</span>
+          <span class="stat-value" id="cloudiness">—</span>
+        </div>
+        <div class="extra-item">
+          <span class="stat-label mono">DEW POINT</span>
+          <span class="stat-value" id="dewPoint">—</span>
+        </div>
+        <div class="extra-item">
+          <span class="stat-label mono">WIND GUST</span>
+          <span class="stat-value" id="windGust">—</span>
+        </div>
+        <div class="extra-item">
+          <span class="stat-label mono">SEA LEVEL</span>
+          <span class="stat-value mono" id="seaLevel">—</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
