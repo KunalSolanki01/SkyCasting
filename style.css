@@ -246,18 +246,6 @@ body.light .toggle-icon.moon { opacity: 1; color: #7090c8; }
   position: relative;
 }
 
-/* subtle shimmer sweep across hero */
-.card-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 24px;
-  background: linear-gradient(105deg, transparent 40%, rgba(212,175,55,0.04) 50%, transparent 60%);
-  background-size: 200% 100%;
-  animation: shimmer 6s ease-in-out infinite;
-  pointer-events: none;
-}
-
 .hero-top {
   display: flex;
   justify-content: space-between;
