@@ -81,7 +81,7 @@ let heroMarker = null;
 
 function initMap(lat, lon) {
   if (!heroMap) {
-    heroMap = L.map("heroMap", { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false })
+    heroMap = L.map("heroMap", { zoomControl: true, attributionControl: true, dragging: true, scrollWheelZoom: true, doubleClickZoom: true, touchZoom: false })
       .setView([lat, lon], 11);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(heroMap);
     heroMarker = L.circleMarker([lat, lon], { radius: 6, color: "#D4AF37", fillColor: "#D4AF37", fillOpacity: 0.9, weight: 2 }).addTo(heroMap);
